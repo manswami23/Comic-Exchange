@@ -18,9 +18,14 @@ login_manager = LoginManager()
 
 def create_app(config_name):
     # create Flask object instance
-    app = Flask(__name__, instance_relative_config=True)
-    app.config.from_object(app_config[config_name])
-    app.config.from_pyfile('config.py')
+    app = Flask(__name__)
+    app.config.update(
+        SECRET_KEY='secret_key',
+        SQLALCHEMY_DATABASE_URI='mysql://super_admin:sugoi@localhost/superhero_db'
+    )
+    # app = Flask(__name__, instance_relative_config=True)
+    # app.config.from_object(app_config[config_name])
+    # app.config.from_pyfile('config.py')
 
     # initialize database 
     db.init_app(app)
