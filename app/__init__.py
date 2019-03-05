@@ -21,7 +21,8 @@ def create_app(config_name):
     app = Flask(__name__)
     app.config.update(
         SECRET_KEY='secret_key',
-        SQLALCHEMY_DATABASE_URI='mysql://super_admin:sugoi@localhost/superhero_db'
+        #SQLALCHEMY_DATABASE_URI='mysql://super_admin:sugoi@localhost/superhero_db'
+        SQLALCHEMY_DATABASE_URI='mysql://ba4f284f7d53c5:ff337ef1@us-cdbr-iron-east-03.cleardb.net/heroku_ac9d5074a62e26f?reconnect=true'
     )
     # app = Flask(__name__, instance_relative_config=True)
     # app.config.from_object(app_config[config_name])
