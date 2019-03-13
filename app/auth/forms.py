@@ -3,7 +3,8 @@
 from flask_wtf import FlaskForm
 from wtforms import PasswordField, StringField, SubmitField, ValidationError
 from wtforms.validators import DataRequired, Email, EqualTo
-
+from .. import db
+from sqlalchemy import text
 from ..models import User
 
 class RegistrationForm(FlaskForm):
@@ -17,8 +18,15 @@ class RegistrationForm(FlaskForm):
 
     # Make sure every user has a unique email
     def validate_email(self, field):
-        if User.query.filter_by(email=field.data).first():
-            raise ValidationError('Email is already in use.')
+            engine = db.engine
+            connection = engine.connect()
+            sql = text('SELECT email From users WHERE users.email = :x')
+            result = connection.execute(sql, x= field.data)
+            connection.close()
+            #if User.query.filter_by(email=field.data).first():
+            if result.first().email:
+                raise ValidationError('Email is already in use.')
+        
 
 class LoginForm(FlaskForm):
     """

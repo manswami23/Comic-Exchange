@@ -56,4 +56,7 @@ def create_app(config_name):
     from .auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint)
 
+    from .listings import listings as listings_blueprint
+    app.register_blueprint(listings_blueprint)
+
     return app
