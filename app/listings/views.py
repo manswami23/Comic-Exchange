@@ -85,7 +85,7 @@ def allListings():
     """
     engine = db.engine
     connection = engine.connect()
-    sql = text('SELECT comicbook.id, comicbook.series, comicbook.issueNum, selling.price FROM comicbook, selling WHERE comicbook.id = selling.book')
+    sql = text('SELECT comicbook.id, comicbook.series, comicbook.issueNum, selling.price FROM comicbook JOIN selling ON comicbook.id = selling.book')
     #deleteSelling = text('DELETE FROM selling WHERE selling.id <> -1')
     #deleteBook = text('DELETE FROM comicbook WHERE series = "Batman"')
     #connection.execute(deleteSelling)
