@@ -69,19 +69,17 @@ def newListing():
         #db.session.commit()
         flash('Listing added')
 
-        # redirect to the login page
         connection.close()
         return redirect(url_for('home.dashboard'))
         
-    # load registration template
+    # listing not validated
     return render_template('listings/addListing.html', form=form, title='New Listing')
 
 
 @listings.route('/allListings', methods=['GET', 'POST'])
 def allListings():
     """
-    Handle requests to the /login route
-    Log in a user through the login form
+    Handle requests to see all listings
     """
     engine = db.engine
     connection = engine.connect()
@@ -104,7 +102,22 @@ def allListings():
 
     
     
-    
+    connection.close()
     return render_template('listings/allListings.html', title='All Listings', output1 = result)
 
+@listings.route('/yourListings', methods=['GET', 'POST'])
+def yourListings():
+    engine = db.engine
+    connection = engine.connect()
+    if current_user.is_authenticated:
+        user = current_user.id
+        
+    sql = text('SELECT email FROM users WHERE users.id = :x')
+    engine = db.engine
+    connection =engine.connect()
 
+    result = connection.execute(sql, x = user).fetchone()
+
+    for _r in result:
+            print(_r)
+    return redirect(url_for('home.dashboard'))
