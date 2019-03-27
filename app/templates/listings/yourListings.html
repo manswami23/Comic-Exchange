@@ -11,8 +11,8 @@
     <ul class = output1>
 	{% for item in output1 %}
 	
-	<li>{{item.series}}, {{item.issueNum}}, {{item.price}} 
-	
+	<li><h1>{{item.series}}, {{item.issueNum}}, {{item.price}} </h1>
+	<form action = "{{url_for('listings.deleteListings', id = item.sellID)}}" method =post> <input type = submit name = "Delete" value = "Delete"> </input></form>
 	<!-- <li> <h1> {{item.series}}</h1> -->
 	{% endfor %}
 	</ul>

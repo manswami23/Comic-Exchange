@@ -69,7 +69,7 @@ def newListing():
         #db.session.commit()
         flash('Listing added')
 
-        #connection.close()
+        connection.close()
         return redirect(url_for('home.dashboard'))
         
     # listing not validated
@@ -102,7 +102,7 @@ def allListings():
 
     
     
-    #connection.close()
+    connection.close()
     return render_template('listings/allListings.html', title='All Listings', output1 = result)
 
 @listings.route('/yourListings', methods=['GET', 'POST'])
@@ -112,13 +112,25 @@ def yourListings():
     if current_user.is_authenticated:
         user = current_user.id
         
-    sql = text('SELECT comicbook.id, comicbook.series, comicbook.issueNum, s1.price FROM comicbook, (SELECT selling.book, selling.price FROM selling WHERE selling.userID = :x) as s1 WHERE comicbook.id = s1.book')
+    sql = text('SELECT comicbook.id, comicbook.series, comicbook.issueNum, s1.price, s1.id AS sellID FROM comicbook, (SELECT selling.book, selling.price, selling.id FROM selling WHERE selling.userID = :x) as s1 WHERE comicbook.id = s1.book')
     
     engine = db.engine
     connection =engine.connect()
 
     result = connection.execute(sql, x = user).fetchall()
 
-    #connection.close()
+    connection.close()
     return render_template('listings/yourListings.html', title='Your Listings', output1 = result)    
     #return redirect(url_for('home.dashboard'))
+
+@listings.route('/deleteListings/<int:id>',methods=['GET', 'POST'])
+def deleteListings(id):
+    engine = db.engine
+    connection = engine.connect()
+    
+    sql = text('DELETE from selling WHERE selling.id = :x')
+    connection.execute(sql, x = id)
+    
+    connection.close()
+    return redirect(url_for('home.dashboard'))
+
