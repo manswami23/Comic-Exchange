@@ -134,3 +134,4 @@ def deleteListings(id):
     connection.close()
     return redirect(url_for('home.dashboard'))
 
+
