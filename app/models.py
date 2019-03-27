@@ -118,6 +118,7 @@ class Sold(db.Model):
     userID = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     book = db.Column(db.Integer, db.ForeignKey('comicbook.id'),
         nullable=False)
+    cgc = db.Column(db.String(10))
 
     def __repr(self):
         return '<Sold: {}>'.format(self.email)
