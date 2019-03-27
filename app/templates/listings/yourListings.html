@@ -1,0 +1,22 @@
+<!-- app/templates/auth/register.html -->
+
+{% import "bootstrap/wtf.html" as wtf %}
+{% extends "base.html" %}
+{% block title %}All Listings{% endblock %}
+{% block body %}
+<div class="content-section">
+  <div class="center">
+    <h1>Your Listings</h1>
+    <br/>
+    <ul class = output1>
+	{% for item in output1 %}
+	
+	<li>{{item.series}}, {{item.issueNum}}, {{item.price}} 
+	
+	<!-- <li> <h1> {{item.series}}</h1> -->
+	{% endfor %}
+	</ul>
+  </div>
+</div>
+
+{% endblock %}
