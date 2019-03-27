@@ -8,7 +8,14 @@
   <div class="center">
     <h1>All Listings</h1>
     <br/>
-    <p>{{output1}} </p>
+    <ul class = output1>
+	{% for item in output1 %}
+	
+	<li>{{item.series}}, {{item.issueNum}}, {{item.price}} 
+	
+	<!-- <li> <h1> {{item.series}}</h1> -->
+	{% endfor %}
+	</ul>
   </div>
 </div>
 

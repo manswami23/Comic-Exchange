@@ -94,17 +94,17 @@ def allListings():
 
     #sql = text('SELECT comicbook.id, comicbook.series, comicbook.issueNum FROM comicbook')
     #sql = text('SELECT * FROM selling')
-    result = connection.execute(sql)
+    result = connection.execute(sql).fetchall()
     output = ''
     for _r in result:
         output += str(_r.id) + ', ' + _r.series + ', ' + str(_r.issueNum) + ', ' + str(_r.price) + '\n'
-        print(str(_r.id) + ', ' + _r.series + ', ' + str(_r.issueNum) + ', ' + str(_r.price))
+        #print(str(_r.id) + ', ' + _r.series + ', ' + str(_r.issueNum) + ', ' + str(_r.price))
         #print(str(_r.book) + ', ' + str(_r.id) + ', ' + str(_r.price))
     
 
     
     
     
-    return render_template('listings/allListings.html', title='All Listings', output1=output)
+    return render_template('listings/allListings.html', title='All Listings', output1 = result)
 
 
