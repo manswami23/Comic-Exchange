@@ -25,4 +25,6 @@ class ListingForm(FlaskForm):
     datePosted = DateTimeField(label='DatePosted',format="%Y-%m-%dT%H:%M:%S",
         default=datetime.utcnow(), ## Now it will call it everytime.
         validators=[DataRequired()])
+    cgc = StringField('CGC')
     submit = SubmitField('Post Listing')
+    

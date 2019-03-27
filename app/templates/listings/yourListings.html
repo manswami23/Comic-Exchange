@@ -11,9 +11,9 @@
     <ul class = output1>
 	{% for item in output1 %}
 	
-	<li><h1>{{item.series}}, {{item.issueNum}}, {{item.price}} </h1>
+	<li><h1>{{item.series}}, {{item.issueNum}}, {{item.price}}, {{item.cgc}} </h1>
 	<form action = "{{url_for('listings.deleteListings', id = item.sellID)}}" method =post> <input type = submit name = "Delete" value = "Delete"> </input></form>
-	<form action = "{{url_for('listings.editListings', id = item.sellID)}}" method =post> <input type = submit name = "Edit" value = "Edit"> </input></form>
+	<form action = "{{url_for('listings.editListings', sellID = item.sellID)}}" method =post> <input type = submit name = "Edit" value = "Edit"> </input></form>
 	
 	<!-- <li> <h1> {{item.series}}</h1> -->
 	{% endfor %}
