@@ -67,7 +67,7 @@ def newListing():
         # Add user to the database
         #db.session.add(user)
         #db.session.commit()
-        flash('Listing added')
+    
 
         connection.close()
         return redirect(url_for('home.dashboard'))
@@ -173,8 +173,7 @@ def editListings(sellID):
             if r.first():
                 getMaxId = text('SELECT MAX(id) AS id FROM comicbook')
                 maxId = connection.execute(getMaxId).fetchone().id + 1
-            print ('hello')
-            print (maxId)
+            
             connection.execute(insertComicBook, a = form.publisher.data, b = form.series.data, c = seriesUpper,
                           d = form.issueNum.data, e = form.primaryCharacter.data, f=form.primaryVillain.data, g = form.genre.data, h = authorId, i = maxId)
         #We know now that book must exist in database
