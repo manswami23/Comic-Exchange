@@ -95,18 +95,18 @@ def allListings():
             return render_template('listings/allListings.html', title='All Listings', output1 = result, form = form)
             
         if (form.character.data == '' and form.villain.data != ''):
-            sql = text('SELECT comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy WHERE UPPER(comicbook.primaryVillain) = :x')
+            sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy WHERE UPPER(comicbook.primaryVillain) = :x')
             result = connection.execute(sql, x = form.villain.data.upper()).fetchall()
         elif (form.character.data != '' and form.villain.data == ''):
-            sql = text('SELECT comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy WHERE UPPER(comicbook.primaryCharacter) = :x')
+            sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy WHERE UPPER(comicbook.primaryCharacter) = :x')
             result = connection.execute(sql, x = form.character.data.upper()).fetchall()
         else:
-            sql = text('SELECT comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy WHERE UPPER(comicbook.primaryCharacter) = :x AND  UPPER(comicbook.primaryVillain) = :y')
+            sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy WHERE UPPER(comicbook.primaryCharacter) = :x AND  UPPER(comicbook.primaryVillain) = :y')
             result = connection.execute(sql, x = form.character.data.upper(), y = form.villain.data.upper()).fetchall()
         connection.close()
         return render_template('listings/allListings.html', title='All Listings', output1 = result, form = form)
     
-    sql = text('SELECT comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy')
+    sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy')
     
     result = connection.execute(sql).fetchall()
     
