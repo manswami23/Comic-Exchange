@@ -1,6 +1,6 @@
 # app/listings/views.py
 
-from flask import flash, redirect, render_template, url_for
+from flask import flash, redirect, render_template, url_for, request
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import text
 from . import listings
@@ -8,6 +8,7 @@ from .forms import ListingForm, CheckForm
 from .. import db
 from ..models import User, comicbook, Selling, Author
 from werkzeug.security import generate_password_hash
+from werkzeug.datastructures import MultiDict
 import datetime
 @listings.route('/newListing', methods=['GET', 'POST'])
 def newListing():
@@ -82,6 +83,7 @@ def allListings():
     """
     Handle requests to see all listings
     """
+    
     form = CheckForm()
     
     engine = db.engine
@@ -89,15 +91,16 @@ def allListings():
 
     if form.validate_on_submit():
         if (form.reset.data == True):
-            sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy')
-            result = connection.execute(sql).fetchall()
-            connection.close()
-            return render_template('listings/allListings.html', title='All Listings', output1 = result, form = form)
-
-        if (form.series.data != '' and form.issueNum.data != ''):
+            #sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy')
+            #result = connection.execute(sql).fetchall()
+            #connection.close()
+            #return render_template('listings/allListings.html', title='All Listings', output1 = result, form = form)
+            return redirect(url_for('listings.allListings'))
+        if (form.series.data != '' and form.issueNum.data is not None):
+            
             sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy WHERE UPPER(comicbook.series) = :x AND comicbook.issueNum = :y')
             result = connection.execute(sql, x = form.series.data.upper(), y = form.issueNum.data).fetchall()
-        elif (form.series.data != '' and form.issueNum.data == ''):
+        elif (form.series.data != '' and form.issueNum.data is None):
             sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy WHERE comicbook.series = :x')
             result = connection.execute(sql, x = form.series.data).fetchall()        
         elif (form.character.data == '' and form.villain.data != ''):
