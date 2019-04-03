@@ -4,10 +4,11 @@ from flask import flash, redirect, render_template, url_for
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import text
 from . import listings
-from .forms import ListingForm
+from .forms import ListingForm, CheckForm
 from .. import db
 from ..models import User, comicbook, Selling, Author
 from werkzeug.security import generate_password_hash
+import datetime
 @listings.route('/newListing', methods=['GET', 'POST'])
 def newListing():
     """
@@ -81,39 +82,37 @@ def allListings():
     """
     Handle requests to see all listings
     """
+    form = CheckForm()
+    
     engine = db.engine
     connection = engine.connect()
-    sql = text('SELECT comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM comicbook JOIN selling ON comicbook.id = selling.book')
-    #deleteSelling = text('DELETE FROM selling WHERE selling.id <> -1')
-    #deleteBook = text('DELETE FROM comicbook WHERE series = "Batman"')
-    #connection.execute(deleteSelling)
-    #connection.execute(deleteBook)
+
+    if form.validate_on_submit():
+        if (form.reset.data == True):
+            sql = text('SELECT comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM comicbook JOIN selling ON comicbook.id = selling.book')
+            result = connection.execute(sql).fetchall()
+            connection.close()
+            return render_template('listings/allListings.html', title='All Listings', output1 = result, form = form)
+            
+        if (form.character.data == '' and form.villain.data != ''):
+            sql = text('SELECT comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM comicbook JOIN selling ON comicbook.id = selling.book WHERE UPPER(comicbook.primaryVillain) = :x')
+            result = connection.execute(sql, x = form.villain.data.upper()).fetchall()
+        elif (form.character.data != '' and form.villain.data == ''):
+            sql = text('SELECT comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM comicbook JOIN selling ON comicbook.id = selling.book WHERE UPPER(comicbook.primaryCharacter) = :x')
+            result = connection.execute(sql, x = form.character.data.upper()).fetchall()
+        else:
+            sql = text('SELECT comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM comicbook JOIN selling ON comicbook.id = selling.book WHERE UPPER(comicbook.primaryCharacter) = :x AND  UPPER(comicbook.primaryVillain) = :y')
+            result = connection.execute(sql, x = form.character.data.upper(), y = form.villain.data.upper()).fetchall()
+        connection.close()
+        return render_template('listings/allListings.html', title='All Listings', output1 = result, form = form)
     
-
-    #sql = text('SELECT comicbook.id, comicbook.series, comicbook.issueNum FROM comicbook')
-    #sql = text('SELECT * FROM selling')
+    sql = text('SELECT comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM comicbook JOIN selling ON comicbook.id = selling.book')
+    
     result = connection.execute(sql).fetchall()
-    output = ''
-    for _r in result:
-        output += str(_r.id) + ', ' + _r.series + ', ' + str(_r.issueNum) + ', ' + str(_r.price) + '\n'
-        #print(str(_r.id) + ', ' + _r.series + ', ' + str(_r.issueNum) + ', ' + str(_r.price))
-        #print(str(_r.book) + ', ' + str(_r.id) + ', ' + str(_r.price))
-
-
-    sqlChar = text('SELECT comicbook.primaryCharacter FROM (comicbook JOIN selling ON comicbook.id = selling.book) GROUP BY comicbook.primaryCharacter LIMIT 3')
-
-    sqlAuthor = text('SELECT author.name FROM (comicbook JOIN selling ON comicbook.id = selling.book) JOIN author ON comicbook.authoredBy = author.id GROUP BY author.name LIMIT 3')
-
-    sqlVillain = text('SELECT comicbook.primaryVillain FROM (comicbook JOIN selling ON comicbook.id = selling.book) GROUP BY comicbook.primaryVillain LIMIT 3')
-
-               
-    result1 = connection.execute(sqlChar).fetchall()
-    result2 = connection.execute(sqlAuthor).fetchall()
-    result3 = connection.execute(sqlVillain).fetchall()
     
     
     connection.close()
-    return render_template('listings/allListings.html', title='All Listings', output1 = result, chars = result1, auths = result2, vills = result3)
+    return render_template('listings/allListings.html', title='All Listings', output1 = result, form = form)
 
 @listings.route('/yourListings', methods=['GET', 'POST'])
 def yourListings():
@@ -210,11 +209,23 @@ def openListings(sellID):
     engine = db.engine
     connection = engine.connect()
 
-    sql = text('SELECT  comicbook.id, comicbook.series, comicbook.issueNum, sell.price, sell.cgc FROM comicbook, (SELECT selling.book, selling.price, selling.cgc FROM selling WHERE selling.id = :si) AS sell WHERE comicbook.id = sell.book')
+    sql = text('SELECT  comicbook.id, comicbook.series, comicbook.issueNum, sell.price, sell.cgc, sell.id AS sellID FROM comicbook, (SELECT selling.id, selling.book, selling.price, selling.cgc FROM selling WHERE selling.id = :si) AS sell WHERE comicbook.id = sell.book')
     result= connection.execute(sql, si = sellID).fetchall()
     
     connection.close()    
     return render_template('listings/openListing.html', output1=result)
+@listings.route('/buyListings/<int:sellID>',methods=['GET', 'POST'])
+def buyListings(sellID):
+    engine = db.engine
+    connection = engine.connect()
 
-
+    now = str(datetime.datetime.now().strftime("%Y-%m-%d"))
+    sql = text('SELECT selling.price, selling.userID, selling.book, selling.cgc FROM selling WHERE selling.id = :s')
+    result = connection.execute(sql, s = sellID).fetchone()
+    sql = text('INSERT INTO sold (priceSold, dateSold, userID, book, cgc) VALUES (:p, :d, :u, :b, :c)')
+    
+    connection.execute(sql, p = result.price, d = now, u = result.userID, b = result.book, c = result.cgc)
+    sql = text('DELETE FROM selling WHERE selling.id = :z')
+    connection.execute(sql, z = sellID)
+    return redirect(url_for('home.dashboard'))
 

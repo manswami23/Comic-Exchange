@@ -28,3 +28,8 @@ class ListingForm(FlaskForm):
     cgc = StringField('CGC')
     submit = SubmitField('Post Listing')
     
+class CheckForm(FlaskForm):
+    character = StringField('Primary Character')
+    villain = StringField('Primary Villain')
+    submit = SubmitField('submit')
+    reset=  SubmitField('reset')

@@ -9,27 +9,16 @@
     <h1>All Listings</h1>
     <br/>
     <ul class = output1>
-	
-	<input type="checkbox" name="match" value=""> spiderman
-	
+
+	{{ wtf.quick_form(form) }}
 	
 	{% for item in output1 %}
 	
 	<li><h1>{{item.series}}, {{item.issueNum}}, {{item.price}}, {{item.cgc}}</h1>
 	<form action = "{{url_for('listings.openListings', sellID = item.sellID)}}" method =post> <input type = submit name = "Open" value = "Open"> </input></form>
 	{% endfor %}
+	<form method = "POST" action = "{{url_for('listings.allListings')}}">
 	
-	{% for item in chars %}
-	<input type="checkbox" name="match" value=""> {{item.primaryCharacter}}
-	{% endfor %}
-	
-	{% for item in auths %}
-	<li> <h1> {{item.name}} </h1>
-	{% endfor %}
-	
-	{% for item in vills %}
-	<li> <h1> {{item.primaryVillain}} </h1>
-	{% endfor %}
 	
 	
 	</ul>

@@ -12,7 +12,9 @@
 	<li>Book: {{item.series}} #{{item.issueNum}}
 	<li>Price: {{item.price}}
 	<li>CGC: {{item.cgc}}
+	<form action = "{{url_for('listings.buyListings', sellID = item.sellID)}}" method =post> <input type = submit name = "Buy" value = "Buy"> </input></form>
 	{% endfor %}
+	
 	</ul>
   </div>
 </div>
