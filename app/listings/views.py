@@ -43,10 +43,10 @@ def newListing():
             if not row1:
                 #author does not exist in database
                 insertAuthor = text('INSERT INTO Author (name) VALUES (:authorName)')
-                connection.execute(insertAuthor, authorName = form.author.data.upper())
+                connection.execute(insertAuthor, authorName = form.author.data)
             #We know now that author must be in database 
             getAuthorId = text('SELECT id FROM Author WHERE Author.name = :authorName')
-            authorId = connection.execute(getAuthorId, authorName=form.author.data.upper()).fetchone().id
+            authorId = connection.execute(getAuthorId, authorName=form.author.data).fetchone().id
             maxId = 0
             getTableSize = text('SELECT * FROM comicbook')
             r = connection.execute(getTableSize)
