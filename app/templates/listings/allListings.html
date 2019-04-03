@@ -9,6 +9,10 @@
     <h1>All Listings</h1>
     <br/>
     <ul class = output1>
+	
+	<input type="checkbox" name="match" value=""> spiderman
+	
+	
 	{% for item in output1 %}
 	
 	<li><h1>{{item.series}}, {{item.issueNum}}, {{item.price}}, {{item.cgc}}</h1>
@@ -16,7 +20,7 @@
 	{% endfor %}
 	
 	{% for item in chars %}
-	<li> <h1> {{item.primaryCharacter}} </h1>
+	<input type="checkbox" name="match" value=""> {{item.primaryCharacter}}
 	{% endfor %}
 	
 	{% for item in auths %}
