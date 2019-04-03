@@ -98,12 +98,22 @@ def allListings():
         output += str(_r.id) + ', ' + _r.series + ', ' + str(_r.issueNum) + ', ' + str(_r.price) + '\n'
         #print(str(_r.id) + ', ' + _r.series + ', ' + str(_r.issueNum) + ', ' + str(_r.price))
         #print(str(_r.book) + ', ' + str(_r.id) + ', ' + str(_r.price))
-    
 
+
+    sqlChar = text('SELECT comicbook.primaryCharacter FROM (comicbook JOIN selling ON comicbook.id = selling.book) GROUP BY comicbook.primaryCharacter LIMIT 3')
+
+    sqlAuthor = text('SELECT author.name FROM (comicbook JOIN selling ON comicbook.id = selling.book) JOIN author ON comicbook.authoredBy = author.id GROUP BY author.name LIMIT 3')
+
+    sqlVillain = text('SELECT comicbook.primaryVillain FROM (comicbook JOIN selling ON comicbook.id = selling.book) GROUP BY comicbook.primaryVillain LIMIT 3')
+
+               
+    result1 = connection.execute(sqlChar).fetchall()
+    result2 = connection.execute(sqlAuthor).fetchall()
+    result3 = connection.execute(sqlVillain).fetchall()
     
     
     connection.close()
-    return render_template('listings/allListings.html', title='All Listings', output1 = result)
+    return render_template('listings/allListings.html', title='All Listings', output1 = result, chars = result1, auths = result2, vills = result3)
 
 @listings.route('/yourListings', methods=['GET', 'POST'])
 def yourListings():
