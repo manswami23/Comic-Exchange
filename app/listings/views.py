@@ -28,16 +28,16 @@ def newListing():
         seriesUpper.upper()
         
         
-        sql = text('SELECT series FROM comicbook WHERE seriesUpper = :x AND issueNum = :i AND publisher = :p')
+        sql = text('SELECT series FROM comicbook WHERE UPPER(series) = :x AND issueNum = :i AND publisher = :p')
         
-        result = connection.execute(sql, x = seriesUpper, i = form.issueNum.data, p = form.publisher.data)
+        result = connection.execute(sql, x =form.series.data.upper() , i = form.issueNum.data, p = form.publisher.data)
         row = result.fetchone()
         if not row:
             #comic book does not exist in database
             
             insertComicBook = text('INSERT INTO ComicBook (publisher, series, seriesUpper, issueNum, primaryCharacter, primaryVillain, genre, authoredBy, id)'
                                    'VALUES(:a, :b, :c, :d, :e, :f, :g, :h, :i)')
-            isAuthor = text('SELECT name FROM Author WHERE Author.name = :authorName')
+            isAuthor = text('SELECT name FROM Author WHERE UPPER(Author.name) = :authorName')
             result1 = connection.execute(isAuthor, authorName=form.author.data.upper())
             row1 = result1.fetchone()
             if not row1:
@@ -58,8 +58,8 @@ def newListing():
             connection.execute(insertComicBook, a = form.publisher.data, b = form.series.data, c = seriesUpper,
                           d = form.issueNum.data, e = form.primaryCharacter.data, f=form.primaryVillain.data, g = form.genre.data, h = authorId, i = maxId)
         #We know now that book must exist in database
-        getBookId = text('SELECT id FROM comicbook WHERE seriesUpper = :x AND issueNum = :i AND publisher = :p')
-        bookId = connection.execute(getBookId, x = seriesUpper, i = form.issueNum.data, p = form.publisher.data).first().id
+        getBookId = text('SELECT id FROM comicbook WHERE UPPER(series) = :x AND issueNum = :i AND publisher = :p')
+        bookId = connection.execute(getBookId, x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data).first().id
         userID = current_user.id
         insertListing = text('INSERT INTO Selling (price, date_posted, book, userID, cgc) VALUES (:p, :dp, :bo, :u, :c)')
         connection.execute(insertListing, p = form.price.data, dp = form.datePosted.data, bo = bookId, u = userID, c = form.cgc.data)
@@ -93,16 +93,27 @@ def allListings():
             result = connection.execute(sql).fetchall()
             connection.close()
             return render_template('listings/allListings.html', title='All Listings', output1 = result, form = form)
-            
-        if (form.character.data == '' and form.villain.data != ''):
+
+        if (form.series.data != '' and form.issueNum.data != ''):
+            sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy WHERE UPPER(comicbook.series) = :x AND comicbook.issueNum = :y')
+            result = connection.execute(sql, x = form.series.data.upper(), y = form.issueNum.data).fetchall()
+        elif (form.series.data != '' and form.issueNum.data == ''):
+            sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy WHERE comicbook.series = :x')
+            result = connection.execute(sql, x = form.series.data).fetchall()        
+        elif (form.character.data == '' and form.villain.data != ''):
             sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy WHERE UPPER(comicbook.primaryVillain) = :x')
             result = connection.execute(sql, x = form.villain.data.upper()).fetchall()
         elif (form.character.data != '' and form.villain.data == ''):
             sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy WHERE UPPER(comicbook.primaryCharacter) = :x')
             result = connection.execute(sql, x = form.character.data.upper()).fetchall()
-        else:
+        elif (form.character.data != '' and form.villain.data != ''):
             sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy WHERE UPPER(comicbook.primaryCharacter) = :x AND  UPPER(comicbook.primaryVillain) = :y')
             result = connection.execute(sql, x = form.character.data.upper(), y = form.villain.data.upper()).fetchall()
+        else:
+            sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy')
+            result = connection.execute(sql).fetchall()
+            connection.close()
+            return render_template('listings/allListings.html', title='All Listings', output1 = result, form = form) 
         connection.close()
         return render_template('listings/allListings.html', title='All Listings', output1 = result, form = form)
     
@@ -157,25 +168,25 @@ def editListings(sellID):
         seriesUpper.upper()
         
         
-        sql = text('SELECT series FROM comicbook WHERE seriesUpper = :x AND issueNum = :i AND publisher = :p')
+        sql = text('SELECT series FROM comicbook WHERE UPPER(series) = :x AND issueNum = :i AND publisher = :p')
         
-        result = connection.execute(sql, x = seriesUpper, i = form.issueNum.data, p = form.publisher.data)
+        result = connection.execute(sql, x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data)
         row = result.fetchone()
         if not row:
             #comic book does not exist in database
             
             insertComicBook = text('INSERT INTO ComicBook (publisher, series, seriesUpper, issueNum, primaryCharacter, primaryVillain, genre, authoredBy, id)'
                                    'VALUES(:a, :b, :c, :d, :e, :f, :g, :h, :i)')
-            isAuthor = text('SELECT name FROM Author WHERE Author.name = :authorName')
+            isAuthor = text('SELECT name FROM Author WHERE UPPER(Author.name) = :authorName')
             result1 = connection.execute(isAuthor, authorName=form.author.data.upper())
             row1 = result1.fetchone()
             if not row1:
                 #author does not exist in database
                 insertAuthor = text('INSERT INTO Author (name) VALUES (:authorName)')
-                connection.execute(insertAuthor, authorName = form.author.data.upper())
+                connection.execute(insertAuthor, authorName = form.author.data)
             #We know now that author must be in database 
             getAuthorId = text('SELECT id FROM Author WHERE Author.name = :authorName')
-            authorId = connection.execute(getAuthorId, authorName=form.author.data.upper()).fetchone().id
+            authorId = connection.execute(getAuthorId, authorName=form.author.data).fetchone().id
             maxId = 0
             getTableSize = text('SELECT * FROM comicbook')
             r = connection.execute(getTableSize)
@@ -186,8 +197,8 @@ def editListings(sellID):
             connection.execute(insertComicBook, a = form.publisher.data, b = form.series.data, c = seriesUpper,
                           d = form.issueNum.data, e = form.primaryCharacter.data, f=form.primaryVillain.data, g = form.genre.data, h = authorId, i = maxId)
         #We know now that book must exist in database
-        getBookId = text('SELECT id FROM comicbook WHERE seriesUpper = :x AND issueNum = :i AND publisher = :p')
-        bookId = connection.execute(getBookId, x = seriesUpper, i = form.issueNum.data, p = form.publisher.data).first().id
+        getBookId = text('SELECT id FROM comicbook WHERE UPPER(series) = :x AND issueNum = :i AND publisher = :p')
+        bookId = connection.execute(getBookId, x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data).first().id
         userID = current_user.id
         updateListing = text('UPDATE selling SET price = :p, date_posted = :dp, book = :bo, userID = :u, cgc = :c WHERE selling.id= :si')
         connection.execute(updateListing, p = form.price.data, dp = form.datePosted.data, bo = bookId, u = userID, c = form.cgc.data, si =sellID)

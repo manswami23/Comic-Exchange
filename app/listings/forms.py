@@ -2,7 +2,7 @@
 
 from flask_wtf import FlaskForm
 from wtforms import PasswordField, StringField, SubmitField, ValidationError, IntegerField, DecimalField, SelectField, DateTimeField
-from wtforms.validators import DataRequired, Email, EqualTo
+from wtforms.validators import DataRequired, Email, EqualTo, Optional
 from .. import db
 from sqlalchemy import text
 from ..models import comicbook
@@ -31,5 +31,7 @@ class ListingForm(FlaskForm):
 class CheckForm(FlaskForm):
     character = StringField('Primary Character')
     villain = StringField('Primary Villain')
+    series = StringField('Series')
+    issueNum = IntegerField('Issue #', validators=[Optional()])
     submit = SubmitField('submit')
     reset=  SubmitField('reset')
