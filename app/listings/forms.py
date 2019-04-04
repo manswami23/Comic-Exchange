@@ -22,9 +22,6 @@ class ListingForm(FlaskForm):
     genre = SelectField('Genre', choices=[('action', 'action'), ('horror', 'horror'), ('adventure', 'adventure')])
     author = StringField('Primary Author', validators=[DataRequired()])
     price = DecimalField('Price ($)', places = 10, validators=[DataRequired()])
-    datePosted = DateTimeField(label='DatePosted',format="%Y-%m-%dT%H:%M:%S",
-        default=datetime.utcnow(), ## Now it will call it everytime.
-        validators=[DataRequired()])
     cgc = StringField('CGC')
     submit = SubmitField('Post Listing')
     

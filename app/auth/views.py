@@ -18,8 +18,9 @@ def register():
     if form.validate_on_submit():
         engine = db.engine
         connection = engine.connect()
-        sql = text('INSERT INTO users (email, password_hash) VALUES(:x, :y)')
-        connection.execute(sql, x = form.email.data, y = generate_password_hash(form.password.data))
+        genre = 'action'
+        sql = text('INSERT INTO users (email, password_hash, favGenre) VALUES(:x, :y, :g)')
+        connection.execute(sql, x = form.email.data, y = generate_password_hash(form.password.data), g = genre)
         connection.close()
         #user = User(email = form.email.data, password = form.password.data)
         

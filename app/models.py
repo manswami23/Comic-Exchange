@@ -22,6 +22,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     want_to_sell = db.relationship('Selling',backref = 'user1', lazy='dynamic')
     hasSold = db.relationship('Sold', backref='user2', lazy = 'dynamic')
+    favGenre = db.Column(db.String(50))
     @property
     def password(self):
         """

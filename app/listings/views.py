@@ -62,8 +62,9 @@ def newListing():
         getBookId = text('SELECT id FROM comicbook WHERE UPPER(series) = :x AND issueNum = :i AND publisher = :p')
         bookId = connection.execute(getBookId, x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data).first().id
         userID = current_user.id
+        now = str(datetime.datetime.now().strftime("%Y-%m-%d"))
         insertListing = text('INSERT INTO Selling (price, date_posted, book, userID, cgc) VALUES (:p, :dp, :bo, :u, :c)')
-        connection.execute(insertListing, p = form.price.data, dp = form.datePosted.data, bo = bookId, u = userID, c = form.cgc.data)
+        connection.execute(insertListing, p = form.price.data, dp = now, bo = bookId, u = userID, c = form.cgc.data)
        
             
         # Add user to the database
@@ -203,8 +204,9 @@ def editListings(sellID):
         getBookId = text('SELECT id FROM comicbook WHERE UPPER(series) = :x AND issueNum = :i AND publisher = :p')
         bookId = connection.execute(getBookId, x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data).first().id
         userID = current_user.id
+        now = str(datetime.datetime.now().strftime("%Y-%m-%d"))
         updateListing = text('UPDATE selling SET price = :p, date_posted = :dp, book = :bo, userID = :u, cgc = :c WHERE selling.id= :si')
-        connection.execute(updateListing, p = form.price.data, dp = form.datePosted.data, bo = bookId, u = userID, c = form.cgc.data, si =sellID)
+        connection.execute(updateListing, p = form.price.data, dp = now, bo = bookId, u = userID, c = form.cgc.data, si =sellID)
        
             
         # Add user to the database
@@ -222,9 +224,15 @@ def editListings(sellID):
 def openListings(sellID):
     engine = db.engine
     connection = engine.connect()
+    
 
-    sql = text('SELECT  comicbook.id, comicbook.series, comicbook.issueNum, sell.price, sell.cgc, sell.id AS sellID FROM comicbook, (SELECT selling.id, selling.book, selling.price, selling.cgc FROM selling WHERE selling.id = :si) AS sell WHERE comicbook.id = sell.book')
+    sql = text('SELECT  comicbook.id, comicbook.series, comicbook.issueNum, comicbook.genre sell.price, sell.cgc, sell.id AS sellID FROM comicbook, (SELECT selling.id, selling.book, selling.price, selling.cgc FROM selling WHERE selling.id = :si) AS sell WHERE comicbook.id = sell.book')
     result= connection.execute(sql, si = sellID).fetchall()
+    genre = result.genre
+    if current_user.is_authenticated:
+        user = current_user.id
+        sql = text('UPDATE users SET favGenre = :g WHERE users.id = :u')
+        connection.execute(sql, g = genre, u = user)
     
     connection.close()    
     return render_template('listings/openListing.html', output1=result)
