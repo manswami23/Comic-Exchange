@@ -24,7 +24,7 @@ class RegistrationForm(FlaskForm):
             result = connection.execute(sql, x= field.data)
             connection.close()
             #if User.query.filter_by(email=field.data).first():
-            if result.first().email:
+            if result.first():
                 raise ValidationError('Email is already in use.')
         
 
