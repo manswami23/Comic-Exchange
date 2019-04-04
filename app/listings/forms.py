@@ -19,7 +19,7 @@ class ListingForm(FlaskForm):
     issueNum = IntegerField('Issue #', validators=[DataRequired()])
     primaryCharacter = StringField('Primary Character', validators=[DataRequired()])
     primaryVillain = StringField('Primary Villain', validators=[DataRequired()])
-    genre = SelectField('Genre', choices=[('action', 'action'), ('horror', 'horror'), ('adventure', 'adventure')])
+    genre = SelectField('Genre', choices=[('action', 'action'), ('horror', 'horror'), ('adventure', 'adventure'), ('comedy', 'comedy'), ('mystery', 'mystery'), ('scifi', 'scifi'))])
     author = StringField('Primary Author', validators=[DataRequired()])
     price = DecimalField('Price ($)', places = 10, validators=[DataRequired()])
     cgc = StringField('CGC')
