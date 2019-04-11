@@ -16,5 +16,12 @@
             </div>
         </div>
     </div>
+	<ul class = output1>
+	{% for item in output %}
+	
+	<li><h1>{{item.series}}, {{item.issueNum}}, {{item.price}}, {{item.cgc}} </h1>
+	
+	<!-- <li> <h1> {{item.series}}</h1> -->
+	{% endfor %}
 </div>
 {% endblock %}

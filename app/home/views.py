@@ -11,15 +11,7 @@ from werkzeug.datastructures import MultiDict
 def homepage():
     """
     Render the homepage template on the / route
-    """
-    return render_template('home/index.html', title="Welcome")
-
-
-@home.route('/dashboard')
-@login_required
-def dashboard():
-    """
-    Render the dashboard template on the /dashboard route
+    
     """
     engine = db.engine
     connection = engine.connect()
@@ -33,4 +25,16 @@ def dashboard():
     for _r in result:
         print(_r.series + ', #' +str(_r.issueNum)) 
     connection.close()
-    return render_template('home/dashboard.html', title="Dashboard", output = result)
+
+
+    return render_template('home/index.html', title="Welcome", output = result)
+
+
+@home.route('/dashboard')
+@login_required
+def dashboard():
+    """
+    Render the dashboard template on the /dashboard route
+    """
+
+    return render_template('home/dashboard.html', title="Dashboard")
