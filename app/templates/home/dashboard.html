@@ -10,8 +10,16 @@
                 <div class="intro-message">
                     <h1>The Dashboard</h1>
                     <h3>We made it here!</h3>
+					
                     <hr class="intro-divider">
                     </ul>
+					<ul class = output1>
+	{% for item in output %}
+	
+	<li><h1>{{item.series}}, {{item.issueNum}}, {{item.price}}, {{item.cgc}} </h1>
+	
+	<!-- <li> <h1> {{item.series}}</h1> -->
+	{% endfor %}
                 </div>
             </div>
         </div>

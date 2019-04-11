@@ -20,7 +20,7 @@ def newListing():
     
     if form.validate_on_submit():
         engine = db.engine
-        connection = engine.connect()
+        #connection = engine.connect()
        
         
 
@@ -31,7 +31,7 @@ def newListing():
         
         sql = text('SELECT series FROM comicbook WHERE UPPER(series) = :x AND issueNum = :i AND publisher = :p')
         
-        result = connection.execute(sql, x =form.series.data.upper() , i = form.issueNum.data, p = form.publisher.data)
+        result = engine.execute(sql, x =form.series.data.upper() , i = form.issueNum.data, p = form.publisher.data)
         row = result.fetchone()
         if not row:
             #comic book does not exist in database
@@ -39,32 +39,32 @@ def newListing():
             insertComicBook = text('INSERT INTO ComicBook (publisher, series, seriesUpper, issueNum, primaryCharacter, primaryVillain, genre, authoredBy, id)'
                                    'VALUES(:a, :b, :c, :d, :e, :f, :g, :h, :i)')
             isAuthor = text('SELECT name FROM Author WHERE UPPER(Author.name) = :authorName')
-            result1 = connection.execute(isAuthor, authorName=form.author.data.upper())
+            result1 = engine.execute(isAuthor, authorName=form.author.data.upper())
             row1 = result1.fetchone()
             if not row1:
                 #author does not exist in database
                 insertAuthor = text('INSERT INTO Author (name) VALUES (:authorName)')
-                connection.execute(insertAuthor, authorName = form.author.data)
+                engine.execute(insertAuthor, authorName = form.author.data)
             #We know now that author must be in database 
             getAuthorId = text('SELECT id FROM Author WHERE Author.name = :authorName')
-            authorId = connection.execute(getAuthorId, authorName=form.author.data).fetchone().id
+            authorId = engine.execute(getAuthorId, authorName=form.author.data).fetchone().id
             maxId = 0
             getTableSize = text('SELECT * FROM comicbook')
-            r = connection.execute(getTableSize)
+            r = engine.execute(getTableSize)
             if r.first():
                 getMaxId = text('SELECT MAX(id) AS id FROM comicbook')
-                maxId = connection.execute(getMaxId).fetchone().id + 1
+                maxId = engine.execute(getMaxId).fetchone().id + 1
             print ('hello')
             print (maxId)
-            connection.execute(insertComicBook, a = form.publisher.data, b = form.series.data, c = seriesUpper,
+            engine.execute(insertComicBook, a = form.publisher.data, b = form.series.data, c = seriesUpper,
                           d = form.issueNum.data, e = form.primaryCharacter.data, f=form.primaryVillain.data, g = form.genre.data, h = authorId, i = maxId)
         #We know now that book must exist in database
         getBookId = text('SELECT id FROM comicbook WHERE UPPER(series) = :x AND issueNum = :i AND publisher = :p')
-        bookId = connection.execute(getBookId, x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data).first().id
+        bookId = engine.execute(getBookId, x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data).first().id
         userID = current_user.id
         now = str(datetime.datetime.now().strftime("%Y-%m-%d"))
         insertListing = text('INSERT INTO Selling (price, date_posted, book, userID, cgc) VALUES (:p, :dp, :bo, :u, :c)')
-        connection.execute(insertListing, p = form.price.data, dp = now, bo = bookId, u = userID, c = form.cgc.data)
+        engine.execute(insertListing, p = form.price.data, dp = now, bo = bookId, u = userID, c = form.cgc.data)
        
             
         # Add user to the database
@@ -72,7 +72,7 @@ def newListing():
         #db.session.commit()
     
 
-        connection.close()
+        #connection.close()
         return redirect(url_for('home.dashboard'))
         
     # listing not validated
@@ -226,27 +226,24 @@ def openListings(sellID):
     connection = engine.connect()
     
 
-    sql = text('SELECT  comicbook.id, comicbook.series, comicbook.issueNum, comicbook.genre sell.price, sell.cgc, sell.id AS sellID FROM comicbook, (SELECT selling.id, selling.book, selling.price, selling.cgc FROM selling WHERE selling.id = :si) AS sell WHERE comicbook.id = sell.book')
+    sql = text('SELECT  comicbook.id, comicbook.series, comicbook.issueNum, comicbook.genre, sell.price, sell.cgc, sell.id AS sellID FROM comicbook, (SELECT selling.id, selling.book, selling.price, selling.cgc FROM selling WHERE selling.id = :si) AS sell WHERE comicbook.id = sell.book')
     result= connection.execute(sql, si = sellID).fetchall()
-    genre = result.genre
-    if current_user.is_authenticated:
-        user = current_user.id
-        sql = text('UPDATE users SET favGenre = :g WHERE users.id = :u')
-        connection.execute(sql, g = genre, u = user)
-    
+   
     connection.close()    
     return render_template('listings/openListing.html', output1=result)
 @listings.route('/buyListings/<int:sellID>',methods=['GET', 'POST'])
 def buyListings(sellID):
     engine = db.engine
     connection = engine.connect()
-
+    if current_user.is_authenticated:
+        user = current_user.id
+        
     now = str(datetime.datetime.now().strftime("%Y-%m-%d"))
     sql = text('SELECT selling.price, selling.userID, selling.book, selling.cgc FROM selling WHERE selling.id = :s')
     result = connection.execute(sql, s = sellID).fetchone()
-    sql = text('INSERT INTO sold (priceSold, dateSold, userID, book, cgc) VALUES (:p, :d, :u, :b, :c)')
+    sql = text('INSERT INTO sold (priceSold, dateSold, userID, book, cgc, buyID) VALUES (:p, :d, :u, :b, :c, :x)')
     
-    connection.execute(sql, p = result.price, d = now, u = result.userID, b = result.book, c = result.cgc)
+    connection.execute(sql, p = result.price, d = now, u = result.userID, b = result.book, c = result.cgc, x = user)
     sql = text('DELETE FROM selling WHERE selling.id = :z')
     connection.execute(sql, z = sellID)
     return redirect(url_for('home.dashboard'))
