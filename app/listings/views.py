@@ -9,7 +9,17 @@ from .. import db
 from ..models import User, comicbook, Selling, Author
 from werkzeug.security import generate_password_hash
 from werkzeug.datastructures import MultiDict
+from lxml import html, etree
+import requests
+from pprint import pprint
+import unicodecsv as csv
+from traceback import format_exc
+import argparse
+import urllib.request
 import datetime
+from bs4 import BeautifulSoup as soup
+from urllib.request import Request, urlopen
+import ssl
 @listings.route('/newListing', methods=['GET', 'POST'])
 def newListing():
     """
@@ -20,7 +30,7 @@ def newListing():
     
     if form.validate_on_submit():
         engine = db.engine
-        #connection = engine.connect()
+        connection = engine.connect()
        
         
 
@@ -29,9 +39,10 @@ def newListing():
         seriesUpper.upper()
         
         
-        sql = text('SELECT series FROM comicbook WHERE UPPER(series) = :x AND issueNum = :i AND publisher = :p')
+        sql = text('SELECT series FROM comicbook JOIN author on comicbook.authoredBy = author.id WHERE UPPER(name) = :a AND UPPER(series) = :x AND issueNum = :i AND publisher = :p')
         
-        result = engine.execute(sql, x =form.series.data.upper() , i = form.issueNum.data, p = form.publisher.data)
+        result = connection.execute(sql, a = form.author.data.upper(), x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data)
+        
         row = result.fetchone()
         if not row:
             #comic book does not exist in database
@@ -59,8 +70,8 @@ def newListing():
             engine.execute(insertComicBook, a = form.publisher.data, b = form.series.data, c = seriesUpper,
                           d = form.issueNum.data, e = form.primaryCharacter.data, f=form.primaryVillain.data, g = form.genre.data, h = authorId, i = maxId)
         #We know now that book must exist in database
-        getBookId = text('SELECT id FROM comicbook WHERE UPPER(series) = :x AND issueNum = :i AND publisher = :p')
-        bookId = engine.execute(getBookId, x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data).first().id
+        getBookId = text('SELECT comicbook.id FROM comicbook JOIN author on comicbook.authoredBy = author.id WHERE UPPER(name) = :a AND UPPER(series) = :x AND issueNum = :i AND publisher = :p')
+        bookId = engine.execute(getBookId, a =form.author.data, x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data).first().id
         userID = current_user.id
         now = str(datetime.datetime.now().strftime("%Y-%m-%d"))
         insertListing = text('INSERT INTO Selling (price, date_posted, book, userID, cgc) VALUES (:p, :dp, :bo, :u, :c)')
@@ -172,11 +183,11 @@ def editListings(sellID):
         seriesUpper.upper()
         
         
-        sql = text('SELECT series FROM comicbook WHERE UPPER(series) = :x AND issueNum = :i AND publisher = :p')
+        sql = text('SELECT series FROM comicbook JOIN author on comicbook.authoredBy = author.id WHERE UPPER(name) = :a AND UPPER(series) = :x AND issueNum = :i AND publisher = :p')
         
-        result = connection.execute(sql, x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data)
+        result = connection.execute(sql, a = form.author.data.upper(), x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data)
         row = result.fetchone()
-        if not row:
+        if (not row):
             #comic book does not exist in database
             
             insertComicBook = text('INSERT INTO ComicBook (publisher, series, seriesUpper, issueNum, primaryCharacter, primaryVillain, genre, authoredBy, id)'
@@ -184,6 +195,7 @@ def editListings(sellID):
             isAuthor = text('SELECT name FROM Author WHERE UPPER(Author.name) = :authorName')
             result1 = connection.execute(isAuthor, authorName=form.author.data.upper())
             row1 = result1.fetchone()
+            
             if not row1:
                 #author does not exist in database
                 insertAuthor = text('INSERT INTO Author (name) VALUES (:authorName)')
@@ -201,8 +213,8 @@ def editListings(sellID):
             connection.execute(insertComicBook, a = form.publisher.data, b = form.series.data, c = seriesUpper,
                           d = form.issueNum.data, e = form.primaryCharacter.data, f=form.primaryVillain.data, g = form.genre.data, h = authorId, i = maxId)
         #We know now that book must exist in database
-        getBookId = text('SELECT id FROM comicbook WHERE UPPER(series) = :x AND issueNum = :i AND publisher = :p')
-        bookId = connection.execute(getBookId, x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data).first().id
+        getBookId = text('SELECT comicbook.id FROM comicbook JOIN author on comicbook.authoredBy = author.id WHERE UPPER(name) = :a AND UPPER(series) = :x AND issueNum = :i AND publisher = :p')
+        bookId = connection.execute(getBookId, a =form.author.data.upper(),  x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data).first().id
         userID = current_user.id
         now = str(datetime.datetime.now().strftime("%Y-%m-%d"))
         updateListing = text('UPDATE selling SET price = :p, date_posted = :dp, book = :bo, userID = :u, cgc = :c WHERE selling.id= :si')
@@ -220,17 +232,83 @@ def editListings(sellID):
     # listing not validated
     return render_template('listings/editListing.html', form=form, title='Edit Listing')
 
+def ebayPrice(book,issueNum, cgc, value, year):
+    item = book + ' ' + issueNum + ' cgc ' + cgc + ' ' + str(year);
+    item_def = item.replace(' ','+')
+    url = 'http://www.ebay.com/sch/i.html?_nkw={0}&_sacat=0'.format(item_def)
+    headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36'}
+    print ("Retrieving %s"%(url))
+    response = requests.get(url, headers=headers, verify=True)
+    #parser = html.fromstring(response.text)
+    #print(response.text)		
+    page = urllib.request.urlopen(url)
+    page_contents = str(page.read())
+    #print(page_contents)
+    idx = page_contents.find('"s-item__title" role="text">')
+    #print(str(idx))
+    sumPrice = 0
+    count = 0
+    str1 = ' ' + issueNum + ' '
+    str2 = '#' + issueNum + ' '
+    str3 = '# ' + issueNum + ' '
+    while idx != -1:
+        #page_contents = page_contents[idx + 28:len(page_contents)]
+        #print(page_contents)
+        idxEnd = page_contents.find('</h3>', idx + 28, len(page_contents))
+
+        #print(str(idxEnd))
+        title = page_contents[idx+28:idxEnd]
+        title1 = title.upper()
+        book1 = book.upper()
+        if ((title.find(str1) == -1 and title.find(str2) == -1 and title.find('str3') == -1) or (title1.find(book1) == -1) and title1.find('REPRINT') != -1):
+            page_contents = page_contents[idxEnd + 5: len(page_contents)]
+            idx = page_contents.find('"s-item__title" role="text">')
+            continue
+        #print(title)
+        page_contents = page_contents[idxEnd + 5: len(page_contents)]
+        
+        idxPriceStart = page_contents.find('class="s-item__price">$')
+        idxPriceEnd = page_contents.find('.', idxPriceStart)
+        price = page_contents[idxPriceStart + 23: idxPriceEnd]
+        page_contents = page_contents[idxPriceEnd + 1:len(page_contents)]
+        #print(str(len(title))+ ': ' + price)
+        price = price.replace(',','')
+        print (title, price)
+        if (abs(int(price) - value) <= (value * .25)):
+            sumPrice += int(price)
+            count = count + 1;
+        idx = page_contents.find('"s-item__title" role="text">')
+    if (count == 0):
+        return 'NA'
+    print(str(sumPrice/count))         
+    return '$' + str(int(sumPrice/count)) + '.00'
+def otherPrice(book,issueNum, cgc):
+    item = book + ' ' + issueNum# + ' cgc ' + cgc;
+    item_def = item.replace(' ','+')
+    url = 'https://comics.gocollect.com/guide/search?q='+item_def
+    headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36'}
+    print ("Retrieving %s"%(url))
+    
+
+    
 @listings.route('/openListings/<int:sellID>',methods=['GET', 'POST'])
 def openListings(sellID):
     engine = db.engine
     connection = engine.connect()
     
 
-    sql = text('SELECT  comicbook.id, comicbook.series, comicbook.issueNum, comicbook.genre, sell.price, sell.cgc, sell.id AS sellID FROM comicbook, (SELECT selling.id, selling.book, selling.price, selling.cgc FROM selling WHERE selling.id = :si) AS sell WHERE comicbook.id = sell.book')
+    sql = text('SELECT  comicbook.id, comicbook.series, comicbook.issueNum, comicbook.year, comicbook.genre, sell.price, sell.cgc, sell.id AS sellID FROM comicbook, (SELECT selling.id, selling.book, selling.price, selling.cgc FROM selling WHERE selling.id = :si) AS sell WHERE comicbook.id = sell.book')
     result= connection.execute(sql, si = sellID).fetchall()
-   
-    connection.close()    
-    return render_template('listings/openListing.html', output1=result)
+    connection.close() 
+    for _r in result:
+        ebay = ebayPrice(_r.series, str(_r.issueNum), str(_r.cgc), _r.price, _r.year)
+        #otherPrice(_r.series, str(_r.issueNum), str(_r.cgc))
+        
+       
+    return render_template('listings/openListing.html', output1=result, output2 = ebay)
+
+    
+
 @listings.route('/buyListings/<int:sellID>',methods=['GET', 'POST'])
 def buyListings(sellID):
     engine = db.engine
