@@ -8,6 +8,7 @@ def mlOutputGenre(primaryCharacter, primaryVillain, authoredBy):
 
     return genre
 
+# separted the function to two
 def mlOutputBooks(genre):
     books = randomSelectBooks(genre)
 
