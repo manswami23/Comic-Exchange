@@ -1,0 +1,37 @@
+<!-- app/templates/auth/register.html -->
+
+{% import "bootstrap/wtf.html" as wtf %}
+{% extends "base.html" %}
+{% block title %}All Listings{% endblock %}
+{% block body %}
+<div class="content-section">
+  <div class="center">
+    <h1>Recommended Listings</h1>
+    <br/>
+    <ul class = output1>
+	
+	{% for item in output1 %}
+	
+	<li><h1>{{item.series}}, {{item.issueNum}}, {{item.name}}, {{item.price}}, {{item.cgc}}</h1>
+	<form action = "{{url_for('listings.openListings', sellID = item.sellID)}}" method =post> <input type = submit name = "Open" value = "Open"> </input></form>
+	{% endfor %}
+	
+	
+	
+	</ul>
+	
+	<ul class = output2>
+	
+	{% for item in output2 %}
+	
+	<li><h1>{{item.series}}, {{item.issueNum}}, {{item.name}}, {{item.price}}, {{item.cgc}}</h1>
+	<form action = "{{url_for('listings.openListings', sellID = item.sellID)}}" method =post> <input type = submit name = "Open" value = "Open"> </input></form>
+	{% endfor %}
+	
+	
+	
+	</ul>
+  </div>
+</div>
+
+{% endblock %}
