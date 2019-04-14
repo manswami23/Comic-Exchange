@@ -297,18 +297,63 @@ def openListings(sellID):
     connection = engine.connect()
     
 
-    sql = text('SELECT  comicbook.id, comicbook.series, comicbook.issueNum, comicbook.year, comicbook.genre, sell.price, sell.cgc, sell.id AS sellID FROM comicbook, (SELECT selling.id, selling.book, selling.price, selling.cgc FROM selling WHERE selling.id = :si) AS sell WHERE comicbook.id = sell.book')
+    sql = text('SELECT  comicbook.primaryCharacter, comicbook.primaryVillain, comicbook.authoredBy, comicbook.id, comicbook.series, comicbook.issueNum, comicbook.year, comicbook.genre, sell.price, sell.cgc, sell.id AS sellID FROM comicbook, (SELECT selling.id, selling.book, selling.price, selling.cgc FROM selling WHERE selling.id = :si) AS sell WHERE comicbook.id = sell.book')
     result= connection.execute(sql, si = sellID).fetchall()
     connection.close() 
     for _r in result:
         ebay = ebayPrice(_r.series, str(_r.issueNum), str(_r.cgc), _r.price, _r.year)
+        newGenre = ML(_r.primaryCharacter, _r.primaryVillain, _r.authoredBy)
         #otherPrice(_r.series, str(_r.issueNum), str(_r.cgc))
+
+    if current_user.is_authenticated:
+        connection = engine.connect()
+        user = current_user.id
+        sql = text('UPDATE users SET favGenre = :g WHERE users.id = :u')
+        connection.execute(sql, g = newGenre, u = user)
+        connection.close()
         
-       
+    
     return render_template('listings/openListing.html', output1=result, output2 = ebay)
 
+@listings.route('/popularSold', methods=['GET', 'POST'])
+def popularSold():
+    engine = db.engine
+    connection = engine.connect()
+    sql = text(
+'SELECT s1.series, s1.issueNum, s1.cgc, s1.price, s1.sellID FROM (SELECT comicbook.series, comicbook.primaryCharacter, comicbook.issueNum, selling.cgc, '+
+'selling.price, selling.id as sellID FROM comicbook JOIN selling on comicbook.id = selling.book) as s1, '+
+'(SELECT comicbook.primaryCharacter, COUNT(*) FROM (comicbook JOIN sold ON comicbook.id = sold.book) GROUP BY comicbook.primaryCharacter'+
+' ORDER BY(COUNT(*)) DESC LIMIT 5) as s2' +' WHERE s1.primaryCharacter = s2.primaryCharacter')
     
+    result = connection.execute(sql).fetchall()
+    for _r in result:
+        print(_r.series + ', #' +str(_r.issueNum)) 
+    connection.close()
+    return render_template('listings/recommendedListings.html', output1=result)
 
+@listings.route('/machineLearning', methods=['GET', 'POST'])
+def machineLearning():
+    engine = db.engine
+    connection = engine.connect()
+    sql = text(
+'SELECT s1.series, s1.issueNum, s1.cgc, s1.price, s1.sellID FROM (SELECT comicbook.series, comicbook.primaryCharacter, comicbook.issueNum, selling.cgc, '+
+'selling.price, selling.id as sellID FROM comicbook JOIN selling on comicbook.id = selling.book) as s1, '+
+'(SELECT comicbook.primaryCharacter, COUNT(*) FROM (comicbook JOIN sold ON comicbook.id = sold.book) GROUP BY comicbook.primaryCharacter'+
+' ORDER BY(COUNT(*)) DESC LIMIT 5) as s2' +' WHERE s1.primaryCharacter = s2.primaryCharacter')
+    
+    result = connection.execute(sql).fetchall()
+    for _r in result:
+        print(_r.series + ', #' +str(_r.issueNum))
+    if current_user.is_authenticated:
+        user = current_user.id
+    sql = text('SELECT users.favGenre FROM users WHERE users.id = :u')
+    result_genre = connection.execute(sql, u = user).fetchall()
+    for _r in result_genre:
+        genre = _r.favGenre
+    connection.close()
+    
+    result2 = mlOutputBooks(genre)
+    return render_template('listings/recommendedListings.html', output1=result, output2 = result2)
 @listings.route('/buyListings/<int:sellID>',methods=['GET', 'POST'])
 def buyListings(sellID):
     engine = db.engine

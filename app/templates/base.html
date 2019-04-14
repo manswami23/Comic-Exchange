@@ -27,11 +27,13 @@
                     <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
 					<li><a href="{{ url_for('listings.newListing') }}">Add New Listing</a></li>
 					<li><a href="{{ url_for('listings.yourListings') }}">Your Listings</a></li>
+					<li><a href="{{ url_for('listings.machineLearning') }}">Recommended Listings</a></li>
                     <li><a><i class="fa fa-user"></i>  Hi, {{ current_user.email }}!</a></li>
                   {% else %}
                     <li><a href="{{ url_for('home.homepage') }}">Home</a></li>
                     <li><a href="{{ url_for('auth.register') }}">Register</a></li>
                     <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+					<li><a href="{{ url_for('listings.popularSold') }}">Recommended Listings</a></li>
 					
                   {% endif %}
 				  <li><a href="{{ url_for('listings.allListings') }}">All Listings</a></li>
