@@ -1,11 +1,14 @@
 import pandas as pd
 import math
 
-def ML():
+def mlOutputGenre(primaryCharacter, primaryVillain, authoredBy):
     comicbook = readComicbook()
 
-    genre = naiveBayesFindGenre(comicbook)
+    genre = naiveBayesFindGenre(comicbook, primaryCharacter, primaryVillain, authoredBy)
 
+    return genre
+
+def mlOutputBooks(genre):
     books = randomSelectBooks(genre)
 
     return books
@@ -73,10 +76,10 @@ def randomSelectBooks(genre):
     # return the five books
     return randomBooks
 
-def naiveBayesFindGenre(comicbook):
+def naiveBayesFindGenre(comicbook, primaryCharacter, primaryVillain, authoredBy):
     # import searched data array
     # test information hard coded for now
-    search = pd.Series(['Batman','Hush','12'],['primaryCharacter','primaryVillain','authoredBy'])
+    search = pd.Series([primaryCharacter,primaryVillain,authoredBy],['primaryCharacter','primaryVillain','authoredBy'])
     character = search['primaryCharacter']
     villain = search['primaryVillain']
     author = search['authoredBy']
