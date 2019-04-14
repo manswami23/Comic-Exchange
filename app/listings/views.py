@@ -20,6 +20,7 @@ import datetime
 from bs4 import BeautifulSoup as soup
 from urllib.request import Request, urlopen
 import ssl
+from .ml import mlOutputBooks, mlOutputGenre
 @listings.route('/newListing', methods=['GET', 'POST'])
 def newListing():
     """
@@ -224,7 +225,7 @@ def editListings(sellID):
         # Add user to the database
         #db.session.add(user)
         #db.session.commit()
-        flash('Listing added')
+        #flash('Listing added')
 
         connection.close()
         return redirect(url_for('home.dashboard'))
@@ -302,7 +303,7 @@ def openListings(sellID):
     connection.close() 
     for _r in result:
         ebay = ebayPrice(_r.series, str(_r.issueNum), str(_r.cgc), _r.price, _r.year)
-        newGenre = ML(_r.primaryCharacter, _r.primaryVillain, _r.authoredBy)
+        newGenre = mlOutputGenre(_r.primaryCharacter, _r.primaryVillain, _r.authoredBy)
         #otherPrice(_r.series, str(_r.issueNum), str(_r.cgc))
 
     if current_user.is_authenticated:
@@ -351,7 +352,10 @@ def machineLearning():
     for _r in result_genre:
         genre = _r.favGenre
     connection.close()
-    
+    print(genre)
+    if genre is None:
+        print('changing genre')
+        genre = 'action'
     result2 = mlOutputBooks(genre)
     return render_template('listings/recommendedListings.html', output1=result, output2 = result2)
 @listings.route('/buyListings/<int:sellID>',methods=['GET', 'POST'])
@@ -364,10 +368,10 @@ def buyListings(sellID):
     now = str(datetime.datetime.now().strftime("%Y-%m-%d"))
     sql = text('SELECT selling.price, selling.userID, selling.book, selling.cgc FROM selling WHERE selling.id = :s')
     result = connection.execute(sql, s = sellID).fetchone()
-    sql = text('INSERT INTO sold (priceSold, dateSold, userID, book, cgc, buyID) VALUES (:p, :d, :u, :b, :c, :x)')
+    sql = text('INSERT INTO sold (priceSold, dateSold, userID, book, cgc) VALUES (:p, :d, :u, :b, :c)')
     
-    connection.execute(sql, p = result.price, d = now, u = result.userID, b = result.book, c = result.cgc, x = user)
+    connection.execute(sql, p = result.price, d = now, u = result.userID, b = result.book, c = result.cgc)
     sql = text('DELETE FROM selling WHERE selling.id = :z')
     connection.execute(sql, z = sellID)
-    return redirect(url_for('home.dashboard'))
+    return redirect(url_for('listings.allListings'))
 

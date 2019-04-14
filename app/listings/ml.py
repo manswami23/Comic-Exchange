@@ -1,6 +1,7 @@
 import pandas as pd
 import math
-
+from .. import db
+from sqlalchemy import text
 def mlOutputGenre(primaryCharacter, primaryVillain, authoredBy):
     comicbook = readComicbook()
 
@@ -24,7 +25,7 @@ def readComicbook():
         'raise_on_warnings': True
     }
 
-    cnx = mysql.connector.connect(**config)
+
 
     # initialize cursor
     # mycursor = cnx.cursor()
@@ -42,6 +43,8 @@ def readComicbook():
     # 	print(x)
 
     # query the table and put it in a dataframe
+    engine = db.engine
+    cnx = engine.connect()
     df = pd.read_sql('SELECT * FROM comicbook', con = cnx)
     cnx.close()
     return df
@@ -56,26 +59,14 @@ def randomSelectBooks(genre):
         'raise_on_warnings': True
     }
 
-    cnx = mysql.connector.connect(**config)
+    engine = db.engine
+    cnx = engine.connect()
 
     # join with the selling table using attributes 'comicbook.id = selling.book'
-    sql = "SELECT * FROM comicbook INNER JOIN selling ON comicbook.id = selling.book WHERE genre = '%s'" % genre
-
-    books = pd.read_sql(sql, con = cnx)
-
+    sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy WHERE genre = :s ORDER BY RAND() LIMIT 5')
+    result = cnx.execute(sql, s = genre).fetchall()
     cnx.close()
-
-    # Randomly select 5 books from Books
-    numBooks = books.shape[0]
-
-    n = 5
-    if n > numBooks:
-        n = numBooks
-
-    randomBooks = books.sample(n=n, random_state=1)
-
-    # return the five books
-    return randomBooks
+    return result
 
 def naiveBayesFindGenre(comicbook, primaryCharacter, primaryVillain, authoredBy):
     # import searched data array

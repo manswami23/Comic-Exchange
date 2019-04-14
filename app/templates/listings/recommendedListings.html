@@ -23,7 +23,6 @@
 	<ul class = output2>
 	
 	{% for item in output2 %}
-	
 	<li><h1>{{item.series}}, {{item.issueNum}}, {{item.name}}, {{item.price}}, {{item.cgc}}</h1>
 	<form action = "{{url_for('listings.openListings', sellID = item.sellID)}}" method =post> <input type = submit name = "Open" value = "Open"> </input></form>
 	{% endfor %}
