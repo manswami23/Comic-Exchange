@@ -63,7 +63,32 @@ def randomSelectBooks(genre):
     cnx = engine.connect()
 
     # join with the selling table using attributes 'comicbook.id = selling.book'
-    sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy WHERE genre = :s ORDER BY RAND() LIMIT 5')
+    
+
+
+
+
+    sql = text(
+'SELECT s1.name, s1.cid, s1.series, s1.issueNum, s1.price, s1.cgc, s1.sellID FROM (SELECT author.name, comicbook.series, comicbook.id as cid, comicbook.primaryCharacter, comicbook.issueNum, selling.cgc, '+
+'selling.price, selling.id as sellID FROM (comicbook JOIN selling on comicbook.id = selling.book) JOIN author on comicbook.authoredBY = author.id) as s1, '+
+'(SELECT comicbook.primaryCharacter, COUNT(*) FROM (comicbook JOIN sold ON comicbook.id = sold.book) GROUP BY comicbook.primaryCharacter '+
+' ORDER BY(COUNT(*)) DESC LIMIT 5) as s2' +' WHERE s1.primaryCharacter = s2.primaryCharacter LIMIT 3 '+ 
+'UNION ' +
+'SELECT s3.name, s3.cid, s3.series, s3.issueNum, s3.price, s3.cgc, s3.sellID FROM (SELECT author.name, comicbook.series,comicbook.id as cid, comicbook.primaryVillain, comicbook.issueNum, selling.cgc, ' +
+'selling.price, selling.id as sellID FROM (comicbook JOIN selling on comicbook.id = selling.book) JOIN author on comicbook.authoredBY = author.id) as s3, '+
+'(SELECT comicbook.primaryVillain, COUNT(*) FROM (comicbook JOIN sold ON comicbook.id = sold.book) GROUP BY comicbook.primaryVillain ' +
+'ORDER BY(COUNT(*)) DESC LIMIT 5) as s4' +' WHERE s3.primaryVillain = s4.primaryVillain LIMIT 3 '+
+'UNION ' +
+'SELECT s5.name, s5.cid, s5.series, s5.issueNum, s5.price, s5.cgc, s5.sellID FROM (SELECT author.name, comicbook.series, comicbook.id as cid, comicbook.primaryVillain, comicbook.primaryCharacter, '+
+'comicbook.issueNum, selling.cgc, selling.price, selling.id as sellID FROM (comicbook JOIN selling on comicbook.id = selling.book) JOIN author on comicbook.authoredBY = author.id)'+
+' as s5, (SELECT comicbook.primaryCharacter, comicbook.primaryVillain, COUNT(*) FROM (comicbook JOIN sold ON comicbook.id = sold.book) '+
+ 'GROUP BY comicbook.primaryVillain, comicbook.primaryCharacter ' +
+'ORDER BY(COUNT(*)) DESC LIMIT 5) as s6' +' WHERE s5.primaryCharacter = s6.primaryCharacter AND s5.primaryVillain = s6.primaryVillain LIMIT 3 ' +
+'UNION ' +
+'(SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID ' +
+'FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy WHERE genre = :s ORDER BY RAND() LIMIT 5)'
+)
+    #sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy WHERE genre = :s ORDER BY RAND() LIMIT 5')
     result = cnx.execute(sql, s = genre).fetchall()
     cnx.close()
     return result
