@@ -315,43 +315,68 @@ def openListings(sellID):
         
     
     return render_template('listings/openListing.html', output1=result, output2 = ebay)
-
-@listings.route('/popularSold', methods=['GET', 'POST'])
-def popularSold():
+def getPopularSoldSelling():
     engine = db.engine
     connection = engine.connect()
     sql = text(
 'SELECT s1.series, s1.issueNum, s1.cgc, s1.price, s1.sellID FROM (SELECT comicbook.series, comicbook.primaryCharacter, comicbook.issueNum, selling.cgc, '+
 'selling.price, selling.id as sellID FROM comicbook JOIN selling on comicbook.id = selling.book) as s1, '+
-'(SELECT comicbook.primaryCharacter, COUNT(*) FROM (comicbook JOIN sold ON comicbook.id = sold.book) GROUP BY comicbook.primaryCharacter'+
-' ORDER BY(COUNT(*)) DESC LIMIT 5) as s2' +' WHERE s1.primaryCharacter = s2.primaryCharacter')
-    
+'(SELECT comicbook.primaryCharacter, COUNT(*) FROM (comicbook JOIN sold ON comicbook.id = sold.book) GROUP BY comicbook.primaryCharacter '+
+' ORDER BY(COUNT(*)) DESC LIMIT 5) as s2' +' WHERE s1.primaryCharacter = s2.primaryCharacter '+ 
+'UNION ' +
+'SELECT s3.series, s3.issueNum, s3.cgc, s3.price, s3.sellID FROM (SELECT comicbook.series, comicbook.primaryVillain, comicbook.issueNum, selling.cgc, ' +
+'selling.price, selling.id as sellID FROM comicbook JOIN selling on comicbook.id = selling.book) as s3, '+
+'(SELECT comicbook.primaryVillain, COUNT(*) FROM (comicbook JOIN sold ON comicbook.id = sold.book) GROUP BY comicbook.primaryVillain ' +
+'ORDER BY(COUNT(*)) DESC LIMIT 5) as s4' +' WHERE s3.primaryVillain = s4.primaryVillain '+
+'UNION ' +
+'SELECT s5.series, s5.issueNum, s5.cgc, s5.price, s5.sellID FROM (SELECT comicbook.series, comicbook.primaryVillain, comicbook.primaryCharacter, '+
+'comicbook.issueNum, selling.cgc, selling.price, selling.id as sellID FROM comicbook JOIN selling on comicbook.id = selling.book) as s5, '+
+'(SELECT comicbook.primaryCharacter, comicbook.primaryVillain, COUNT(*) FROM (comicbook JOIN sold ON comicbook.id = sold.book) '+
+ 'GROUP BY comicbook.primaryVillain, comicbook.primaryCharacter ' +
+'ORDER BY(COUNT(*)) DESC LIMIT 5) as s6' +' WHERE s5.primaryCharacter = s6.primaryCharacter AND s5.primaryVillain = s6.primaryVillain'
+)
     result = connection.execute(sql).fetchall()
+    connection.close()
+    return result
+
+@listings.route('/popularSold', methods=['GET', 'POST'])
+def popularSold():
+    #engine = db.engine
+    #connection = engine.connect()
+    #sql = text(
+#'SELECT s1.series, s1.issueNum, s1.cgc, s1.price, s1.sellID FROM (SELECT comicbook.series, comicbook.primaryCharacter, comicbook.issueNum, selling.cgc, '+
+#'selling.price, selling.id as sellID FROM comicbook JOIN selling on comicbook.id = selling.book) as s1, '+
+#'(SELECT comicbook.primaryCharacter, COUNT(*) FROM (comicbook JOIN sold ON comicbook.id = sold.book) GROUP BY comicbook.primaryCharacter'+
+#' ORDER BY(COUNT(*)) DESC LIMIT 5) as s2' +' WHERE s1.primaryCharacter = s2.primaryCharacter')
+    
+    result = getPopularSoldSelling()
     for _r in result:
         print(_r.series + ', #' +str(_r.issueNum)) 
-    connection.close()
+    #connection.close()
     return render_template('listings/recommendedListings.html', output1=result)
 
 @listings.route('/machineLearning', methods=['GET', 'POST'])
 def machineLearning():
-    engine = db.engine
-    connection = engine.connect()
-    sql = text(
-'SELECT s1.series, s1.issueNum, s1.cgc, s1.price, s1.sellID FROM (SELECT comicbook.series, comicbook.primaryCharacter, comicbook.issueNum, selling.cgc, '+
-'selling.price, selling.id as sellID FROM comicbook JOIN selling on comicbook.id = selling.book) as s1, '+
-'(SELECT comicbook.primaryCharacter, COUNT(*) FROM (comicbook JOIN sold ON comicbook.id = sold.book) GROUP BY comicbook.primaryCharacter'+
-' ORDER BY(COUNT(*)) DESC LIMIT 5) as s2' +' WHERE s1.primaryCharacter = s2.primaryCharacter')
+    #engine = db.engine
+    #connection = engine.connect()
+    #sql = text(
+#'SELECT s1.series, s1.issueNum, s1.cgc, s1.price, s1.sellID FROM (SELECT comicbook.series, comicbook.primaryCharacter, comicbook.issueNum, selling.cgc, '+
+#'selling.price, selling.id as sellID FROM comicbook JOIN selling on comicbook.id = selling.book) as s1, '+
+#'(SELECT comicbook.primaryCharacter, COUNT(*) FROM (comicbook JOIN sold ON comicbook.id = sold.book) GROUP BY comicbook.primaryCharacter'+
+#' ORDER BY(COUNT(*)) DESC LIMIT 5) as s2' +' WHERE s1.primaryCharacter = s2.primaryCharacter')
     
-    result = connection.execute(sql).fetchall()
+    result = getPopularSoldSelling()
     for _r in result:
         print(_r.series + ', #' +str(_r.issueNum))
     if current_user.is_authenticated:
         user = current_user.id
+    engine = db.engine
+    connection = engine.connect()
     sql = text('SELECT users.favGenre FROM users WHERE users.id = :u')
     result_genre = connection.execute(sql, u = user).fetchall()
+    connection.close()
     for _r in result_genre:
         genre = _r.favGenre
-    connection.close()
     print(genre)
     if genre is None:
         print('changing genre')
