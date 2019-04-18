@@ -45,8 +45,8 @@ def newListing():
         row = result.fetchone()
         if not row:        
             # comic book does not exist in database
-            insertComicBook = text('INSERT INTO ComicBook (publisher, series, seriesUpper, issueNum, primaryCharacter, primaryVillain, genre, authoredBy, id)'
-                                   'VALUES(:a, :b, :c, :d, :e, :f, :g, :h, :i)')
+            insertComicBook = text('INSERT INTO ComicBook (publisher, year, series, seriesUpper, issueNum, primaryCharacter, primaryVillain, genre, authoredBy, id)'
+                                   'VALUES(:a, :y, :b, :c, :d, :e, :f, :g, :h, :i)')
             isAuthor = text('SELECT name FROM Author WHERE UPPER(Author.name) = :authorName')
             result1 = engine.execute(isAuthor, authorName=form.author.data.upper())
             row1 = result1.fetchone()
@@ -67,7 +67,7 @@ def newListing():
                 maxId = engine.execute(getMaxId).fetchone().id + 1
             print ('hello')
             print (maxId)
-            engine.execute(insertComicBook, a = form.publisher.data, b = form.series.data, c = seriesUpper,
+            engine.execute(insertComicBook, a = form.publisher.data, y = form.year.data, b = form.series.data, c = seriesUpper,
                           d = form.issueNum.data, e = form.primaryCharacter.data, f=form.primaryVillain.data, g = form.genre.data, h = authorId, i = maxId)
         
         # We know now that book must exist in database
@@ -175,8 +175,8 @@ def editListings(sellID):
         row = result.fetchone()
         if (not row):
             # comic book does not exist in database          
-            insertComicBook = text('INSERT INTO ComicBook (publisher, series, seriesUpper, issueNum, primaryCharacter, primaryVillain, genre, authoredBy, id)'
-                                   'VALUES(:a, :b, :c, :d, :e, :f, :g, :h, :i)')
+            insertComicBook = text('INSERT INTO ComicBook (publisher, year, series, seriesUpper, issueNum, primaryCharacter, primaryVillain, genre, authoredBy, id)'
+                                   'VALUES(:a, :y, :b, :c, :d, :e, :f, :g, :h, :i)')
             isAuthor = text('SELECT name FROM Author WHERE UPPER(Author.name) = :authorName')
             result1 = connection.execute(isAuthor, authorName=form.author.data.upper())
             row1 = result1.fetchone()
@@ -196,7 +196,7 @@ def editListings(sellID):
                 getMaxId = text('SELECT MAX(id) AS id FROM comicbook')
                 maxId = connection.execute(getMaxId).fetchone().id + 1
             
-            connection.execute(insertComicBook, a = form.publisher.data, b = form.series.data, c = seriesUpper,
+            connection.execute(insertComicBook, a = form.publisher.data,y = form.year.data, b = form.series.data, c = seriesUpper,
                           d = form.issueNum.data, e = form.primaryCharacter.data, f=form.primaryVillain.data, g = form.genre.data, h = authorId, i = maxId)
         
         #We know now that book must exist in database

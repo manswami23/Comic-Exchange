@@ -23,6 +23,7 @@ class ListingForm(FlaskForm):
     author = StringField('Primary Author', validators=[DataRequired()])
     price = DecimalField('Price ($)', places = 10, validators=[DataRequired()])
     cgc = StringField('CGC')
+    year = StringField('Published Year')
     submit = SubmitField('Post Listing')
     
 class CheckForm(FlaskForm):
