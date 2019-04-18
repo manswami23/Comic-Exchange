@@ -2,23 +2,46 @@
 
 {% import "bootstrap/wtf.html" as wtf %}
 {% extends "base.html" %}
-{% block title %}All Listings{% endblock %}
+{% block title %}Your Listings{% endblock %}
 {% block body %}
 <div class="content-section">
   <div class="center">
-    <h1>Your Listings</h1>
-    <br/>
+		<h1 style="text-align: center">Your Listings</h1>
+		<hr class="intro-divider">
     <ul class = output1>
-	{% for item in output1 %}
+	<!-- {% for item in output1 %}
 	
 	<li><h1>{{item.series}}, {{item.issueNum}}, {{item.price}}, {{item.cgc}} </h1>
 	<form action = "{{url_for('listings.deleteListings', id = item.sellID)}}" method =post> <input type = submit name = "Delete" value = "Delete"> </input></form>
 	<form action = "{{url_for('listings.editListings', sellID = item.sellID)}}" method =post> <input type = submit name = "Edit" value = "Edit"> </input></form>
 	
-	<!-- <li> <h1> {{item.series}}</h1> -->
-	{% endfor %}
+	<li> <h1> {{item.series}}</h1> 
+	{% endfor %} -->
 	</ul>
   </div>
 </div>
+
+<div class="center">
+		<div class="panel panel-default" style="width: 100%;">
+			{% for item in output1 %}
+
+				<div class="panel-body">
+					
+					<p style="text-align: left;"><font size = "5">{{item.series}}</font> No. #{{item.issueNum}}
+					<span style="float: right;"><font size= "5">Price: ${{item.price}}</font> </span></p>
+					<!-- <p style="text-align: left;"><i>By {{item.name}} </i>
+					<span style="float: right;">CGC: {{item.cgc}}</span></p> -->
+					CGC: {{item.cgc}}
+					
+				</div>
+				<div class="panel-footer">
+						<form action = "{{url_for('listings.deleteListings', id = item.sellID)}}" method =post> <input type = submit name = "Delete" value = "Delete"> </input></form>
+						<form action = "{{url_for('listings.editListings', sellID = item.sellID)}}" method =post> <input type = submit name = "Edit" value = "Edit"> </input></form>
+				</div>
+
+			{% endfor %}
+
+			</div>
+	</div>
 
 {% endblock %}

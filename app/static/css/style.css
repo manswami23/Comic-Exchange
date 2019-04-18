@@ -11,11 +11,11 @@ body, h1, h2, h3 {
 }
 
 a, .navbar-default .navbar-brand, .navbar-default .navbar-nav>li>a {
-  color: #aec251;
+  color: #25b0f1;
 }
 
 a:hover, .navbar-default .navbar-brand:hover, .navbar-default .navbar-nav>li>a:hover {
-  color: #687430;
+  color: #297bf5;
 }
 
 footer {
@@ -30,18 +30,18 @@ p.copyright {
 .alert-info {
     width: 50%;
     margin: auto;
-    color: #687430;
+    color: #0c0a96;
     background-color: #e6ecca;
-    border-color: #aec251;
+    border-color: #0f91e7;
 }
 
 .btn-default {
-    border-color: #aec251;
-    color: #aec251;
+    border-color: #1b78e2;
+    color: #2677d4;
 }
 
 .btn-default:hover {
-    background-color: #aec251;
+    background-color: #297bf5;
 }
 
 .center {

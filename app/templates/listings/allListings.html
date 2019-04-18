@@ -4,25 +4,41 @@
 {% extends "base.html" %}
 {% block title %}All Listings{% endblock %}
 {% block body %}
+
+
 <div class="content-section">
   <div class="center">
-    <h1>All Listings</h1>
-    <br/>
+		<h1 style="text-align: center">All Listings</h1>
+		<hr class="intro-divider">
     <ul class = output1>
-	<p> Enter 1 of the following: Character, Villain, Character and Villain, Series, or Series and IssueNum </p>
+	<p> Enter exactly one combination of the following: Primary Character, Primary Villain, Primary Character and Primary Villain, Series, or Series and Issue Number </p>
 	{{ wtf.quick_form(form) }}
-	
-	{% for item in output1 %}
-	
-	<li><h1>{{item.series}}, {{item.issueNum}}, {{item.name}}, {{item.price}}, {{item.cgc}}</h1>
-	<form action = "{{url_for('listings.openListings', sellID = item.sellID)}}" method =post> <input type = submit name = "Open" value = "Open"> </input></form>
-	{% endfor %}
-	<form method = "POST" action = "{{url_for('listings.allListings')}}">
-	
-	
-	
 	</ul>
   </div>
 </div>
+
+	<div class="center">
+		<div class="panel panel-default" style="width: 100%;">
+			{% for item in output1 %}
+
+				<div class="panel-body">
+					
+					<p style="text-align: left;"><font size = "5">{{item.series}}</font> No. #{{item.issueNum}}
+					<span style="float: right;"><font size= "5">Price: ${{item.price}}</font> </span></p>
+					<i>By {{item.name}} </i>
+					
+				</div>
+				<div class="panel-footer">
+					<form action = "{{url_for('listings.openListings', sellID = item.sellID)}}" method =post> <input type = submit name = "View Comic" value = "View Comic"> </input></form>
+				</div>
+
+			{% endfor %}
+
+			</div>
+	</div>
+	<form method = "POST" action = "{{url_for('listings.allListings')}}"> 
+
+		
+
 
 {% endblock %}

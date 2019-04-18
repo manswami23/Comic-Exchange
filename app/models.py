@@ -90,6 +90,8 @@ class comicbook(db.Model):
     listingsSelling = db.relationship('Selling', backref='comicbook', lazy='dynamic')
     authoredBy = db.Column(db.Integer, db.ForeignKey('author.id'), nullable=False)
     listingsSold = db.relationship('Sold', backref='comicbook', lazy='dynamic')
+    year = db.Column(db.Integer)
+
     def __repr(self):
         return '<comicbook: {}>'.format(self.id)
     

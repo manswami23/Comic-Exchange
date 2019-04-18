@@ -85,7 +85,7 @@ def newListing():
     
 
         #connection.close()
-        return redirect(url_for('home.dashboard'))
+        return redirect(url_for('home.homepage'))
         
     # listing not validated
     return render_template('listings/addListing.html', form=form, title='New Listing')
@@ -155,7 +155,7 @@ def yourListings():
 
     connection.close()
     return render_template('listings/yourListings.html', title='Your Listings', output1 = result)    
-    #return redirect(url_for('home.dashboard'))
+
 
 @listings.route('/deleteListings/<int:id>',methods=['GET', 'POST'])
 def deleteListings(id):
@@ -166,7 +166,7 @@ def deleteListings(id):
     connection.execute(sql, x = id)
     
     connection.close()
-    return redirect(url_for('home.dashboard'))
+    return redirect(url_for('home.homepage'))
 
 
 @listings.route('/editListings/<int:sellID>',methods=['GET', 'POST'])
@@ -228,7 +228,7 @@ def editListings(sellID):
         #flash('Listing added')
 
         connection.close()
-        return redirect(url_for('home.dashboard'))
+        return redirect(url_for('home.homepage'))
         
     # listing not validated
     return render_template('listings/editListing.html', form=form, title='Edit Listing')
