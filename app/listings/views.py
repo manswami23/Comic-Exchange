@@ -21,6 +21,8 @@ from bs4 import BeautifulSoup as soup
 from urllib.request import Request, urlopen
 import ssl
 from .ml import mlOutputBooks, mlOutputGenre
+
+
 @listings.route('/newListing', methods=['GET', 'POST'])
 def newListing():
     """
@@ -32,32 +34,29 @@ def newListing():
     if form.validate_on_submit():
         engine = db.engine
         connection = engine.connect()
-       
-        
-
-        
+    
         seriesUpper = form.series.data
-        seriesUpper.upper()
-        
+        seriesUpper.upper()     
         
         sql = text('SELECT series FROM comicbook JOIN author on comicbook.authoredBy = author.id WHERE UPPER(name) = :a AND UPPER(series) = :x AND issueNum = :i AND publisher = :p')
         
         result = connection.execute(sql, a = form.author.data.upper(), x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data)
         
         row = result.fetchone()
-        if not row:
-            #comic book does not exist in database
-            
+        if not row:        
+            # comic book does not exist in database
             insertComicBook = text('INSERT INTO ComicBook (publisher, series, seriesUpper, issueNum, primaryCharacter, primaryVillain, genre, authoredBy, id)'
                                    'VALUES(:a, :b, :c, :d, :e, :f, :g, :h, :i)')
             isAuthor = text('SELECT name FROM Author WHERE UPPER(Author.name) = :authorName')
             result1 = engine.execute(isAuthor, authorName=form.author.data.upper())
             row1 = result1.fetchone()
+            
             if not row1:
-                #author does not exist in database
+                # author does not exist in database
                 insertAuthor = text('INSERT INTO Author (name) VALUES (:authorName)')
                 engine.execute(insertAuthor, authorName = form.author.data)
-            #We know now that author must be in database 
+            
+            # We know now that author must be in database 
             getAuthorId = text('SELECT id FROM Author WHERE Author.name = :authorName')
             authorId = engine.execute(getAuthorId, authorName=form.author.data).fetchone().id
             maxId = 0
@@ -70,7 +69,8 @@ def newListing():
             print (maxId)
             engine.execute(insertComicBook, a = form.publisher.data, b = form.series.data, c = seriesUpper,
                           d = form.issueNum.data, e = form.primaryCharacter.data, f=form.primaryVillain.data, g = form.genre.data, h = authorId, i = maxId)
-        #We know now that book must exist in database
+        
+        # We know now that book must exist in database
         getBookId = text('SELECT comicbook.id FROM comicbook JOIN author on comicbook.authoredBy = author.id WHERE UPPER(name) = :a AND UPPER(series) = :x AND issueNum = :i AND publisher = :p')
         bookId = engine.execute(getBookId, a =form.author.data, x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data).first().id
         userID = current_user.id
@@ -78,13 +78,7 @@ def newListing():
         insertListing = text('INSERT INTO Selling (price, date_posted, book, userID, cgc) VALUES (:p, :dp, :bo, :u, :c)')
         engine.execute(insertListing, p = form.price.data, dp = now, bo = bookId, u = userID, c = form.cgc.data)
        
-            
-        # Add user to the database
-        #db.session.add(user)
-        #db.session.commit()
-    
-
-        #connection.close()
+        # Redirect back to homepage
         return redirect(url_for('home.homepage'))
         
     # listing not validated
@@ -104,10 +98,6 @@ def allListings():
 
     if form.validate_on_submit():
         if (form.reset.data == True):
-            #sql = text('SELECT author.name, comicbook.id, comicbook.series, comicbook.issueNum, selling.price, selling.cgc, selling.id AS sellID FROM author JOIN (comicbook JOIN selling ON comicbook.id = selling.book) ON author.id = comicbook.authoredBy')
-            #result = connection.execute(sql).fetchall()
-            #connection.close()
-            #return render_template('listings/allListings.html', title='All Listings', output1 = result, form = form)
             return redirect(url_for('listings.allListings'))
         if (form.series.data != '' and form.issueNum.data is not None):
             
@@ -150,7 +140,6 @@ def yourListings():
         
     sql = text('SELECT comicbook.id, comicbook.series, comicbook.issueNum, s1.price, s1.id AS sellID, s1.cgc FROM comicbook, (SELECT selling.book, selling.cgc, selling.price, selling.id FROM selling WHERE selling.userID = :x) as s1 WHERE comicbook.id = s1.book')
     
-
     result = connection.execute(sql, x = user).fetchall()
 
     connection.close()
@@ -176,21 +165,16 @@ def editListings(sellID):
     if form.validate_on_submit():
         engine = db.engine
         connection = engine.connect()
-       
-        
-
-        
+  
         seriesUpper = form.series.data
         seriesUpper.upper()
-        
-        
+    
         sql = text('SELECT series FROM comicbook JOIN author on comicbook.authoredBy = author.id WHERE UPPER(name) = :a AND UPPER(series) = :x AND issueNum = :i AND publisher = :p')
         
         result = connection.execute(sql, a = form.author.data.upper(), x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data)
         row = result.fetchone()
         if (not row):
-            #comic book does not exist in database
-            
+            # comic book does not exist in database          
             insertComicBook = text('INSERT INTO ComicBook (publisher, series, seriesUpper, issueNum, primaryCharacter, primaryVillain, genre, authoredBy, id)'
                                    'VALUES(:a, :b, :c, :d, :e, :f, :g, :h, :i)')
             isAuthor = text('SELECT name FROM Author WHERE UPPER(Author.name) = :authorName')
@@ -201,6 +185,7 @@ def editListings(sellID):
                 #author does not exist in database
                 insertAuthor = text('INSERT INTO Author (name) VALUES (:authorName)')
                 connection.execute(insertAuthor, authorName = form.author.data)
+            
             #We know now that author must be in database 
             getAuthorId = text('SELECT id FROM Author WHERE Author.name = :authorName')
             authorId = connection.execute(getAuthorId, authorName=form.author.data).fetchone().id
@@ -213,6 +198,7 @@ def editListings(sellID):
             
             connection.execute(insertComicBook, a = form.publisher.data, b = form.series.data, c = seriesUpper,
                           d = form.issueNum.data, e = form.primaryCharacter.data, f=form.primaryVillain.data, g = form.genre.data, h = authorId, i = maxId)
+        
         #We know now that book must exist in database
         getBookId = text('SELECT comicbook.id FROM comicbook JOIN author on comicbook.authoredBy = author.id WHERE UPPER(name) = :a AND UPPER(series) = :x AND issueNum = :i AND publisher = :p')
         bookId = connection.execute(getBookId, a =form.author.data.upper(),  x = form.series.data.upper(), i = form.issueNum.data, p = form.publisher.data).first().id
@@ -220,13 +206,8 @@ def editListings(sellID):
         now = str(datetime.datetime.now().strftime("%Y-%m-%d"))
         updateListing = text('UPDATE selling SET price = :p, date_posted = :dp, book = :bo, userID = :u, cgc = :c WHERE selling.id= :si')
         connection.execute(updateListing, p = form.price.data, dp = now, bo = bookId, u = userID, c = form.cgc.data, si =sellID)
-       
-            
-        # Add user to the database
-        #db.session.add(user)
-        #db.session.commit()
-        #flash('Listing added')
 
+        # Close connection and redirect back to homepage
         connection.close()
         return redirect(url_for('home.homepage'))
         
@@ -240,6 +221,7 @@ def ebayPrice(book,issueNum, cgc, value, year):
     headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36'}
     print ("Retrieving %s"%(url))
     response = requests.get(url, headers=headers, verify=True)
+    
     #parser = html.fromstring(response.text)
     #print(response.text)		
     page = urllib.request.urlopen(url)
@@ -252,6 +234,7 @@ def ebayPrice(book,issueNum, cgc, value, year):
     str1 = ' ' + issueNum + ' '
     str2 = '#' + issueNum + ' '
     str3 = '# ' + issueNum + ' '
+    
     while idx != -1:
         #page_contents = page_contents[idx + 28:len(page_contents)]
         #print(page_contents)
