@@ -7,8 +7,7 @@ from .. import db
 from sqlalchemy import text
 from ..models import comicbook
 from ..models import Selling
-from datetime import datetime
-        
+from datetime import datetime    
 
 class ListingForm(FlaskForm):
     """

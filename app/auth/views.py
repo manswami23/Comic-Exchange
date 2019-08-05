@@ -8,6 +8,7 @@ from .forms import LoginForm, RegistrationForm
 from .. import db
 from ..models import User
 from werkzeug.security import generate_password_hash
+
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
     """
@@ -16,17 +17,17 @@ def register():
     """
     form = RegistrationForm()
     if form.validate_on_submit():
+        # connect to the database
         engine = db.engine
         connection = engine.connect()
+
+        # pre-set new user's default preferred genre to 'action'
         genre = 'action'
+
+        # Add user to the database
         sql = text('INSERT INTO users (email, password_hash, favGenre) VALUES(:x, :y, :g)')
         connection.execute(sql, x = form.email.data, y = generate_password_hash(form.password.data), g = genre)
         connection.close()
-        #user = User(email = form.email.data, password = form.password.data)
-        
-        # Add user to the database
-        #db.session.add(user)
-        #db.session.commit()
         flash('Registration successful!')
 
         # redirect to the login page
