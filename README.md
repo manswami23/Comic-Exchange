@@ -1,5 +1,9 @@
-Note: androo6 == AndrooTheChen
-(androo6 is my older account with an unused email)
+
+ Contributors/Responsibilities
+==============================
+1. manswami23/CRUD operations and Ebay price scraper
+2. AndrooTheChen/App setup, Front-End, and Authorization
+3. Jusung Han/Machine learning algorithm to determine user's preferred genres.
 
 Worked on with 2 other contributers (not shown due to moving repo from private to public)
 
