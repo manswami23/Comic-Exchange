@@ -5,7 +5,6 @@
 2. AndrooTheChen/App setup, Front-End, and Authorization
 3. Jusung Han/Machine learning algorithm to determine user's preferred genres.
 
-Worked on with 2 other contributers (not shown due to moving repo from private to public)
 
  Comic Exchange
 ================
